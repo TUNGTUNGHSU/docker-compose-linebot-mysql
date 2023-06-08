@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  bot:
+    build: ./bot #Dockerfile的所在目錄
+    ports:
+      - "8000:8000"
+    environment:
+      - LINE_CHANNEL_SECRET=
+      - LINE_CHANNEL_ACCESS_TOKEN=
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_DATABASE=linebot
+      - MYSQL_HOST=db
+    #定義"bot"服物的依賴關係。"db"服務將在 "bot"服務之前啟動。
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_DATABASE=linebot
+      - MYSQL_ROOT_PASSWORD=
+    ports:
+      - 3307:3306
+  ngrok:
+    image: wernight/ngrok:latest
+    ports:
+      - "8888:4040"
+    environment:
+      NGROK_PROTOCOL: tcp
+      NGROK_PORT: bot:8000
+      NGROK_AUTH:
+
+volumes:
+  db-data:
